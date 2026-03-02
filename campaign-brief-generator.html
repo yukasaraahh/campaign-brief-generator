@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Campaign Brief Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+        
+        .input-section, .output-section {
+            padding: 40px;
+        }
+        
+        .input-section {
+            background: #f8f9fa;
+            border-right: 1px solid #e0e0e0;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 0.95em;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .generate-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+        
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .output-section {
+            background: white;
+        }
+        
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .output-header h2 {
+            color: #333;
+            font-size: 1.5em;
+        }
+        
+        .copy-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+        
+        .output-content {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+            line-height: 1.7;
+            color: #333;
+        }
+        
+        .output-content.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-style: italic;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
+        .output-content h3 {
+            color: #667eea;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+        
+        .output-content h3:first-child {
+            margin-top: 0;
+        }
+        
+        .output-content p {
+            margin-bottom: 12px;
+        }
+        
+        .output-content ul, .output-content ol {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+        
+        .output-content li {
+            margin-bottom: 8px;
+        }
+        
+        .output-content strong {
+            color: #764ba2;
+            font-weight: 600;
+        }
+        
+        .ad-copy-box {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        @media (max-width: 968px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-section {
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .hint {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .tag {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 AI Campaign Brief Generator</h1>
+            <p>Powered by Claude AI • Built for Performance Marketers</p>
+        </div>
+        
+        <div class="content">
+            <div class="input-section">
+                <form id="campaignForm">
+                    <div class="form-group">
+                        <label for="business">Business/Product Name</label>
+                        <input type="text" id="business" placeholder="e.g., BYD Chonburi" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product">What are you promoting?</label>
+                        <textarea id="product" placeholder="e.g., Electric vehicles for Thai market, focusing on ATTO 3 and Dolphin models with special Bangkok Motor Show pricing" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="objective">Campaign Objective</label>
+                        <select id="objective" required>
+                            <option value="">Select objective...</option>
+                            <option value="awareness">Brand Awareness</option>
+                            <option value="traffic">Website Traffic</option>
+                            <option value="leads">Lead Generation</option>
+                            <option value="sales">Direct Sales/Conversions</option>
+                            <option value="event">Event Registration</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="budget">Monthly Budget (THB)</label>
+                            <input type="number" id="budget" placeholder="50000" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="targetCPA">Target CPA/ROAS</label>
+                            <input type="text" id="targetCPA" placeholder="e.g., 500 THB/lead">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="audience">Target Audience</label>
+                        <textarea id="audience" placeholder="e.g., Thai car buyers 30-50 years old, middle to upper income, environmentally conscious, living in Bangkok and surrounding provinces" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="landingPage">Landing Page URL</label>
+                        <input type="url" id="landingPage" placeholder="https://bydchonburi.com/motorshow2026">
+                        <div class="hint">Where will your ads send traffic?</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="platforms">Preferred Ad Platforms</label>
+                        <select id="platforms" multiple size="5">
+                            <option value="meta">Meta (Facebook/Instagram)</option>
+                            <option value="google">Google Ads</option>
+                            <option value="tiktok">TikTok</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="line">LINE Ads (Thailand)</option>
+                        </select>
+                        <div class="hint">Hold Ctrl/Cmd to select multiple</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="usp">Unique Selling Points</label>
+                        <textarea id="usp" placeholder="e.g., Best warranty in class, Thai service centers, special Motor Show pricing, EV cost savings"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="generate-btn" id="generateBtn">
+                        ✨ Generate Campaign Brief
+                    </button>
+                </form>
+            </div>
+            
+            <div class="output-section">
+                <div class="output-header">
+                    <h2>Campaign Brief</h2>
+                    <button class="copy-btn" id="copyBtn" style="display: none;">📋 Copy All</button>
+                </div>
+                <div class="output-content empty" id="output">
+                    Fill in the form and click "Generate Campaign Brief" to create your AI-powered campaign strategy with platform recommendations, audience targeting, and ready-to-use ad copy.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('campaignForm');
+        const output = document.getElementById('output');
+        const generateBtn = document.getElementById('generateBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        
+        // Pre-fill for demo purposes
+        document.getElementById('business').value = 'BYD Chonburi';
+        document.getElementById('product').value = 'Electric vehicles - ATTO 3 and Dolphin with Bangkok Motor Show exclusive pricing and test drive opportunities';
+        document.getElementById('objective').value = 'leads';
+        document.getElementById('budget').value = '80000';
+        document.getElementById('targetCPA').value = '400 THB/lead';
+        document.getElementById('audience').value = 'Thai car buyers 28-55 years old, middle to upper-middle income (50K+ THB/month), environmentally conscious, tech-savvy early adopters, Bangkok and surrounding provinces';
+        document.getElementById('landingPage').value = 'https://bydchonburi.com/motorshow2026';
+        document.getElementById('usp').value = '6-year warranty, 40+ service centers in Thailand, 70% lower fuel costs, government EV subsidies, instant torque, advanced safety tech';
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                business: document.getElementById('business').value,
+                product: document.getElementById('product').value,
+                objective: document.getElementById('objective').value,
+                budget: document.getElementById('budget').value,
+                targetCPA: document.getElementById('targetCPA').value,
+                audience: document.getElementById('audience').value,
+                landingPage: document.getElementById('landingPage').value,
+                platforms: Array.from(document.getElementById('platforms').selectedOptions).map(opt => opt.value),
+                usp: document.getElementById('usp').value
+            };
+            
+            // Show loading
+            output.classList.remove('empty');
+            output.innerHTML = '<div class="loading">Generating your campaign brief with Claude AI</div>';
+            generateBtn.disabled = true;
+            generateBtn.textContent = '⏳ Generating...';
+            copyBtn.style.display = 'none';
+            
+            try {
+                const brief = await generateCampaignBrief(formData);
+                displayBrief(brief);
+                copyBtn.style.display = 'block';
+            } catch (error) {
+                output.innerHTML = `<p style="color: #dc3545;">Error generating brief: ${error.message}</p>`;
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = '✨ Generate Campaign Brief';
+            }
+        });
+        
+        copyBtn.addEventListener('click', () => {
+            const text = output.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            });
+        });
+        
+        async function generateCampaignBrief(data) {
+            const platformMap = {
+                'meta': 'Meta (Facebook/Instagram)',
+                'google': 'Google Ads',
+                'tiktok': 'TikTok',
+                'linkedin': 'LinkedIn',
+                'line': 'LINE Ads'
+            };
+            
+            const platformsText = data.platforms.length > 0 
+                ? data.platforms.map(p => platformMap[p] || p).join(', ')
+                : 'recommend the best platforms';
+            
+            const prompt = `You are an expert performance marketer. Create a comprehensive paid advertising campaign brief based on this information:
+
+BUSINESS: ${data.business}
+PRODUCT/OFFER: ${data.product}
+OBJECTIVE: ${data.objective}
+BUDGET: ${data.budget} THB per month
+TARGET CPA/ROAS: ${data.targetCPA}
+TARGET AUDIENCE: ${data.audience}
+LANDING PAGE: ${data.landingPage}
+PREFERRED PLATFORMS: ${platformsText}
+UNIQUE SELLING POINTS: ${data.usp}
+
+Create a detailed campaign brief that includes:
+
+1. **CAMPAIGN OVERVIEW**
+   - Campaign name and objective
+   - Target KPIs
+   - Budget allocation recommendation
+
+2. **PLATFORM STRATEGY**
+   - Which platforms to use and why (considering their budget and audience)
+   - Recommended campaign types for each platform
+   - Budget split across platforms
+
+3. **AUDIENCE TARGETING**
+   - Detailed targeting strategy for each platform
+   - Custom audience recommendations
+   - Lookalike/similar audience strategies
+
+4. **AD CREATIVE STRATEGY**
+   - 3 distinct creative angles/concepts to test
+   - Recommended ad formats for each platform
+
+5. **AD COPY EXAMPLES**
+   - Create 3 complete ad copy variations (headline + primary text + CTA) using different frameworks (PAS, BAB, Social Proof)
+   - Make them specific to this product and audience
+   - Each should be platform-ready
+
+6. **MEASUREMENT & OPTIMIZATION**
+   - Key metrics to track
+   - Success criteria
+   - Week 1-4 optimization roadmap
+
+Format this professionally but concisely. Use headers, bullet points, and bold text for emphasis. Make it actionable and specific to their business context.`;
+
+            const response = await fetch("https://api.anthropic.com/v1/messages", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    model: "claude-sonnet-4-20250514",
+                    max_tokens: 4000,
+                    messages: [
+                        { role: "user", content: prompt }
+                    ],
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            return result.content[0].text;
+        }
+        
+        function displayBrief(brief) {
+            // Convert markdown-style formatting to HTML
+            let html = brief
+                .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^# (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^\- (.+)$/gm, '<li>$1</li>')
+                .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            
+            html = '<p>' + html + '</p>';
+            
+            // Clean up multiple consecutive tags
+            html = html
+                .replace(/<\/p>\s*<p>\s*<\/p>/g, '</p>')
+                .replace(/<p>\s*<\/p>/g, '')
+                .replace(/<\/ul>\s*<ul>/g, '')
+                .replace(/<p>\s*<h3>/g, '<h3>')
+                .replace(/<\/h3>\s*<\/p>/g, '</h3>');
+            
+            output.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
